@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Transposition Cipher</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>.btn-home{position:fixed;top:20px;right:20px;z-index:1000}</style>
+</head>
+<body>
+    <a href="/" class="btn btn-secondary btn-home">← Trang chủ</a>
+    <div class="container mt-5">
+        <h3 class="text-center font-weight-bold mb-4">TRANSPOSITION CIPHER</h3>
+        
+        <!-- ENCRYPT -->
+        <h5 class="text-primary font-weight-bold mt-3">ENCRYPTION</h5>
+        <form onsubmit="event.preventDefault(); fetch('/api/transposition/encrypt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plain_text:document.querySelector('[name=inputPlainText]').value,key:document.querySelector('[name=inputKeyPlain]').value})}).then(r=>r.json()).then(d=>{
+            document.getElementById('encResult').value=d.result;
+            document.querySelector('[name=inputCipherText]').value=d.result;
+            document.querySelector('[name=inputKeyCipher]').value=document.querySelector('[name=inputKeyPlain]').value;
+        }).catch(e=>alert('Error: '+e));">
+            <div class="form-group">
+                <label>Plain text:</label>
+                <input type="text" class="form-control" name="inputPlainText" placeholder="Plain text" required>
+            </div>
+            <div class="form-group">
+                <label>Key:</label>
+                <input type="number" min="2" class="form-control" name="inputKeyPlain" placeholder="Key" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Encrypt</button>
+            <div class="mt-3">
+                <label>Cipher Text:</label>
+                <input type="text" id="encResult" class="form-control" readonly style="background:#e9ecef">
+            </div>
+        </form>
+
+        <hr class="my-5">
+
+        <!-- DECRYPT -->
+        <h5 class="text-success font-weight-bold mt-3">DECRYPTION</h5>
+        <form onsubmit="event.preventDefault(); fetch('/api/transposition/decrypt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cipher_text:document.querySelector('[name=inputCipherText]').value,key:document.querySelector('[name=inputKeyCipher]').value})}).then(r=>r.json()).then(d=>{
+            document.getElementById('decResult').value=d.result;
+            document.querySelector('[name=inputPlainText]').value=d.result;
+            document.querySelector('[name=inputKeyPlain]').value=document.querySelector('[name=inputKeyCipher]').value;
+        }).catch(e=>alert('Error: '+e));">
+            <div class="form-group">
+                <label>Cipher text:</label>
+                <input type="text" class="form-control" name="inputCipherText" placeholder="Cipher text" required>
+            </div>
+            <div class="form-group">
+                <label>Key:</label>
+                <input type="number" min="2" class="form-control" name="inputKeyCipher" placeholder="Key" required>
+            </div>
+            <button type="submit" class="btn btn-success">Decrypt</button>
+            <div class="mt-3">
+                <label>Plain Text:</label>
+                <input type="text" id="decResult" class="form-control" readonly style="background:#e9ecef">
+            </div>
+        </form>
+    </div>
+</body>
+</html>
