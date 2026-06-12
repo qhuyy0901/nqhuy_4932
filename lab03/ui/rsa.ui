@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RSACipher</class>
+ <widget class="QMainWindow" name="RSACipher">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>720</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>RSA Cipher</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="titleLabel">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>20</y>
+      <width>160</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>RSA CIPHER</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="generateKeysBtn">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>20</y>
+      <width>120</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Generate Keys</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="plainTextLabel">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>80</y>
+      <width>80</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Plain Text:</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="plainTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>80</y>
+      <width>250</width>
+      <height>100</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="cipherTextLabel">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>200</y>
+      <width>80</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>CipherText:</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="cipherTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>200</y>
+      <width>250</width>
+      <height>100</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="encryptBtn">
+    <property name="geometry">
+     <rect>
+      <x>130</x>
+      <y>330</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Encrypt</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="decryptBtn">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>330</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Decrypt</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="infoLabel">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>80</y>
+      <width>100</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Information:</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="infoEdit">
+    <property name="geometry">
+     <rect>
+      <x>459</x>
+      <y>80</y>
+      <width>231</width>
+      <height>100</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QLabel" name="signatureLabel">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>200</y>
+      <width>100</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Signature:</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="signatureEdit">
+    <property name="geometry">
+     <rect>
+      <x>459</x>
+      <y>200</y>
+      <width>231</width>
+      <height>100</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="signBtn">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>330</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Sign</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="verifyBtn">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>330</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Verify</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
