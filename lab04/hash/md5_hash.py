@@ -1,3 +1,7 @@
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+sys.stdin.reconfigure(encoding='utf-8')
+
 def left_rotate(value, shift):
     return ((value << shift) | (value >> (32 - shift))) & 0xFFFFFFFF
 
