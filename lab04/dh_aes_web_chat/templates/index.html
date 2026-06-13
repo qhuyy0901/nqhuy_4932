@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CHAT CTY NQHuyy · DH-AES</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+
+/* ── Cơ bản ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background: #f1f5f9;
+  color: #1e293b;
+  height: 100vh;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+/* ── Modal đăng nhập ─────────────────────────────────────── */
+.veil {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+}
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 36px 30px 28px;
+  width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+}
+.card-ico { font-size: 48px; display: block; margin-bottom: 14px; }
+.card h1  { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+.card-sub {
+  font-size: 12.5px; color: #64748b;
+  line-height: 1.65; margin-bottom: 18px;
+}
+.algo-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+.algo {
+  font-size: 10.5px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+  letter-spacing: .02em;
+}
+.card input {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; outline: none; color: #1e293b;
+  background: #f8fafc; margin-bottom: 10px;
+  transition: border-color .2s;
+}
+.card input:focus { border-color: #2563eb; background: #fff; }
+.card button {
+  width: 100%; padding: 12px;
+  background: #2563eb; border: none; border-radius: 8px;
+  color: #fff; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+}
+.card button:hover    { background: #1d4ed8; }
+.card button:disabled { background: #93c5fd; cursor: default; }
+
+/* ── Bố cục tổng thể ─────────────────────────────────────── */
+.app { display: flex; height: 100vh; }
+
+/* ── Sidebar trái ────────────────────────────────────────── */
+.sidebar {
+  width: 260px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  background: #fff; border-right: 1px solid #e2e8f0;
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: #e2e8f0; }
+
+.sb-brand {
+  padding: 16px;
+  background: #1e40af; flex-shrink: 0;
+}
+.sb-brand-name { font-size: 14px; font-weight: 700; color: #fff; }
+.sb-brand-sub  { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 2px; }
+
+.room-entry {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  background: #eff6ff; border-bottom: 2px solid #dbeafe;
+}
+.re-ico {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #2563eb; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.re-body  { flex: 1; min-width: 0; }
+.re-name  { font-size: 13px; font-weight: 600; color: #1e293b; }
+.re-sub   {
+  font-size: 11px; color: #64748b; margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.re-badge {
+  font-size: 11px; font-weight: 700;
+  background: #2563eb; color: #fff;
+  border-radius: 20px; padding: 2px 8px; flex-shrink: 0;
+}
+
+.info-group { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; }
+.info-title {
+  font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: #94a3b8; margin-bottom: 9px;
+}
+
+.conn-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: #475569;
+}
+
+/* trạng thái */
+.s-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.s-dot.ok   { background: #4ade80; }
+.s-dot.off  { background: #f87171; }
+.s-dot.wait { background: #fbbf24; }
+
+/* các bước */
+.step {
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 5px 7px; border-radius: 5px;
+  font-size: 11px; color: #94a3b8;
+  border: 1px solid transparent;
+  margin-bottom: 3px; transition: all .2s;
+}
+.step span { line-height: 1.4; }
+.step.done    { color: #15803d; background: #f0fdf4; border-color: #bbf7d0; }
+.step.active  { color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; font-weight: 600; }
+.step.pending { opacity: .45; }
+.step-n {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #e2e8f0; color: #94a3b8;
+  font-size: 8.5px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.step.done   .step-n { background: #16a34a; color: #fff; }
+.step.active .step-n { background: #2563eb; color: #fff; }
+
+/* khóa xem trước */
+.k-label { font-size: 10px; color: #94a3b8; margin-bottom: 3px; }
+.k-label + .k-label { margin-top: 8px; }
+.k-val {
+  font-family: 'Courier New', monospace;
+  font-size: 9.5px; color: #475569;
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 5px; padding: 5px 8px;
+  word-break: break-all; line-height: 1.5;
+}
+
+/* ── Khu vực hội thoại ───────────────────────────────────── */
+.convo { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #f8fafc; }
+
+.convo-hd {
+  background: #fff; border-bottom: 1px solid #e2e8f0;
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.ch-info { display: flex; align-items: center; gap: 11px; }
+.ch-ico {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #2563eb; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.ch-name { font-size: 14px; font-weight: 700; color: #1e293b; }
+.ch-sub  { font-size: 11px; color: #64748b; margin-top: 1px; }
+.ch-enc {
+  font-size: 11px; font-weight: 600;
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 20px; padding: 4px 12px; color: #15803d;
+}
+
+/* tin nhắn */
+.msgs {
+  flex: 1; overflow-y: auto;
+  padding: 18px 22px 10px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.msgs::-webkit-scrollbar { width: 4px; }
+.msgs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+.row { display: flex; gap: 9px; animation: rise .15s ease; }
+.row.sent { flex-direction: row-reverse; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.av {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0; color: #fff; margin-top: 2px;
+}
+.av.s { background: #2563eb; }
+.av.r { background: #7c3aed; }
+
+.bubble {
+  max-width: 60%; padding: 10px 14px;
+  background: #fff;
+  border-radius: 4px 16px 16px 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.row.sent .bubble {
+  background: #2563eb; color: #fff;
+  border-radius: 16px 4px 16px 16px;
+}
+.b-name { font-size: 10.5px; font-weight: 600; color: #7c3aed; margin-bottom: 3px; }
+.row.sent .b-name { color: rgba(255,255,255,.7); }
+.b-text { font-size: 13.5px; line-height: 1.55; }
+.b-meta { font-size: 10px; color: #94a3b8; margin-top: 5px; text-align: right; }
+.row.sent .b-meta { color: rgba(255,255,255,.55); }
+.b-enc {
+  font-family: 'Courier New', monospace; font-size: 9px; color: #94a3b8;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px;
+}
+.row.sent .b-enc { color: rgba(255,255,255,.4); }
+
+.sys { text-align: center; font-size: 11px; color: #94a3b8; }
+.sys span {
+  display: inline-block;
+  background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 20px; padding: 3px 14px;
+}
+
+/* khu vực nhập */
+.convo-ft {
+  background: #fff; border-top: 1px solid #e2e8f0;
+  padding: 12px 20px 14px; flex-shrink: 0;
+}
+.ft-meta {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: #94a3b8; margin-bottom: 8px;
+}
+.ft-row { display: flex; align-items: center; gap: 9px; }
+#msgIn {
+  flex: 1; padding: 10px 16px;
+  border: 1.5px solid #e2e8f0; border-radius: 24px;
+  font-size: 13px; outline: none; color: #1e293b;
+  background: #f8fafc; transition: border-color .2s;
+}
+#msgIn:focus    { border-color: #2563eb; background: #fff; }
+#msgIn:disabled { opacity: .4; cursor: not-allowed; }
+#msgIn::placeholder { color: #94a3b8; }
+.send-btn {
+  padding: 10px 20px;
+  background: #2563eb; border: none; border-radius: 24px;
+  color: #fff; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: background .15s;
+}
+.send-btn:hover    { background: #1d4ed8; }
+.send-btn:disabled { background: #93c5fd; cursor: default; }
+.ft-note { font-size: 10px; color: #94a3b8; margin-top: 6px; }
+
+/* Panel server spy */
+.spy-panel {
+  padding: 12px 14px;
+  flex: 1;
+  overflow-y: auto;
+  border-top: 2px solid #fca5a5;
+}
+.spy-title {
+  font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: #ef4444; margin-bottom: 9px;
+  display: flex; align-items: center; gap: 5px;
+}
+.spy-item {
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  animation: rise .15s ease;
+}
+.spy-who {
+  font-size: 10px; font-weight: 700; color: #dc2626;
+  margin-bottom: 3px;
+}
+.spy-cipher {
+  font-family: 'Courier New', monospace;
+  font-size: 9px; color: #475569;
+  word-break: break-all; line-height: 1.5;
+  margin-top: 2px;
+}
+.spy-time {
+  font-size: 9px; color: #94a3b8; margin-top: 3px; text-align: right;
+}
+.spy-empty {
+  font-size: 11px; color: #94a3b8; text-align: center; padding: 10px 0;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Modal đăng nhập -->
+<div class="veil" id="modal">
+  <div class="card">
+    <span class="card-ico">🔐</span>
+    <h1>CHAT CTY NQHuyy</h1>
+    <div class="algo-row">
+      <span class="algo">DH-2048</span>
+      <span class="algo">AES-256-GCM</span>
+      <span class="algo">HKDF-SHA256</span>
+    </div>
+    <input id="nameIn" type="text" placeholder="Tên hiển thị của bạn..." maxlength="30" autocomplete="off"/>
+    <button id="joinBtn" onclick="joinChat()">Tham gia chat</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+
+    <div class="sb-brand">
+      <div class="sb-brand-name">🛡️ CHAT CTY NQHuyy</div>
+    </div>
+
+    <!-- Phòng chat -->
+    <div class="room-entry">
+      <div class="re-ico">💬</div>
+      <div class="re-body">
+        <div class="re-name">nhóm Nói Sáu Sếp Huyy</div>
+        <div class="re-sub" id="chatSub">Đang kết nối...</div>
+      </div>
+      <span class="re-badge" id="ucnt">0</span>
+    </div>
+
+    <!-- Trạng thái -->
+    <div class="info-group">
+      <div class="info-title">Trạng thái kết nối</div>
+      <div class="conn-row">
+        <div class="s-dot off" id="sDot"></div>
+        <span id="sTxt">Chưa kết nối</span>
+      </div>
+      <div style="font-size:11px;color:#64748b;margin-top:6px" id="sEnc">Chưa có khóa</div>
+    </div>
+
+    <!-- Panel server spy -->
+    <div class="spy-panel">
+      <div class="spy-title">
+        <span>&#128270;</span> Server đọc được
+      </div>
+      <div id="spyLog">
+        <div class="spy-empty">Chưa có tin nhắn nào...</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Khu vực hội thoại -->
+  <div class="convo">
+
+    <div class="convo-hd">
+      <div class="ch-info">
+        <div class="ch-ico">💬</div>
+        <div>
+          <div class="ch-name">nhóm Nói Sáu Sếp Huyy</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="msgs" id="msgs"></div>
+
+    <div class="convo-ft">
+      <div class="ft-row">
+        <input id="msgIn" type="text"
+               placeholder="Nhập tin nhắn..."
+               disabled autocomplete="off"/>
+        <button class="send-btn" id="sendBtn" onclick="send()" disabled>Gửi &#10148;</button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+let socket,myUser='',mySid='',dhP=null,dhG=null,myPriv=null,myPub=null;
+let peerKeys={},peerNames={},ready=false;
+
+const $=id=>document.getElementById(id);
+function step(n,s){const el=$('step'+n);if(el)el.className='step '+s}
+function status(dot,txt,enc){$('sDot').className='s-dot '+dot;$('sTxt').textContent=txt;if(enc)$('sEnc').textContent=enc}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function now(){return new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}
+function bih(n){let h=n.toString(16);return h.length%2?'0'+h:h}
+function modpow(b,e,m){let r=1n;b=b%m;while(e>0n){if(e%2n===1n)r=r*b%m;e>>=1n;b=b*b%m}return r}
+function randbig(bits){const by=new Uint8Array(Math.ceil(bits/8));crypto.getRandomValues(by);let h='';for(const b of by)h+=b.toString(16).padStart(2,'0');return BigInt('0x'+h)}
+async function deriveAES(ss){
+  const h=bih(ss),by=Uint8Array.from(h.match(/.{2}/g).map(x=>parseInt(x,16)));
+  const rk=await crypto.subtle.importKey('raw',by,'HKDF',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',salt:new TextEncoder().encode('dh-aes-chat-salt'),info:new TextEncoder().encode('aes-gcm-chat-key')},rk,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function gcmEnc(key,txt){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(txt));
+  const r=new Uint8Array(12+ct.byteLength);r.set(iv);r.set(new Uint8Array(ct),12);
+  return btoa(String.fromCharCode(...r));
+}
+async function gcmDec(key,b64){
+  const r=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:r.slice(0,12)},key,r.slice(12));
+  return new TextDecoder().decode(pt);
+}
+
+function msg(type,from,text,enc){
+  const c=$('msgs');
+  if(type==='sys'){const d=document.createElement('div');d.className='sys';d.innerHTML='<span>'+text+'</span>';c.appendChild(d);c.scrollTop=c.scrollHeight;return}
+  const me=from===myUser,i=from.charAt(0).toUpperCase();
+  const w=document.createElement('div');w.className='row '+(me?'sent':'recv');
+  w.innerHTML='<div class="av '+(me?'s':'r')+'">'+i+'</div><div><div class="bubble">'+
+    '<div class="b-name">'+esc(from)+'</div>'+
+    '<div class="b-text">'+esc(text)+'</div>'+
+    '<div class="b-meta">'+now()+'</div></div></div>';
+  c.appendChild(w);c.scrollTop=c.scrollHeight;
+}
+
+function updatePeers(){
+  const sids=Object.keys(peerNames);
+  const pl=$('peerList');if(pl){
+    if(!sids.length){pl.innerHTML='<div class="no-peer">Chưa có ai trong phòng</div>';return}
+    pl.innerHTML=sids.map(sid=>{
+      const n=peerNames[sid]||sid.substring(0,6),k=peerKeys[sid]?'🔒':'⏳';
+      return '<div class="peer"><div class="p-av">'+n.charAt(0).toUpperCase()+'</div><div class="p-name">'+esc(n)+'</div><div class="p-badge">'+k+' AES</div></div>';
+    }).join('');
+  }
+}
+function updateShared(){
+  const ns=Object.keys(peerKeys).map(s=>peerNames[s]||s.substring(0,6));
+  const el=$('shareKV');if(el)el.textContent=ns.length?ns.join(', '):'Chưa có ai';
+}
+
+function joinChat(){
+  const n=$('nameIn').value.trim();if(!n){$('nameIn').focus();return}
+  myUser=n;$('modal').style.display='none';connect();
+}
+$('nameIn').addEventListener('keydown',e=>{if(e.key==='Enter')joinChat()});
+
+function connect(){
+  socket=io();
+  socket.on('connect',()=>{mySid=socket.id;status('wait','Đang nhận tham số DH...','⏳');$('chatSub').textContent='Đang trao đổi khóa DH...';step(1,'active')});
+  socket.on('disconnect',()=>{ready=false;peerKeys={};peerNames={};status('off','Mất kết nối','Chưa có khóa');$('msgIn').disabled=true;$('sendBtn').disabled=true;$('chatSub').textContent='Mất kết nối';for(let i=1;i<=7;i++)step(i,'pending');updatePeers();updateShared()});
+  socket.on('dh_init',async d=>{
+    try{
+      step(1,'done');step(2,'active');
+      dhP=BigInt('0x'+d.p_hex);dhG=BigInt('0x'+d.g_hex);
+      myPriv=randbig(2048)%(dhP-2n)+2n;myPub=modpow(dhG,myPriv,dhP);
+      step(2,'done');step(3,'active');
+      const ph=bih(myPub);
+      step(3,'done');step(4,'active');
+      socket.emit('client_dh_public_key',{dh_public_key:ph,username:myUser});
+      step(4,'done');step(5,'active');
+      status('wait','Chờ thành viên khác...','⏳ Chưa có ai');
+      $('chatSub').textContent='Chờ người khác tham gia...';
+      msg('sys','','🤝 Đã nhận tham số DH. Chờ thành viên khác...');
+    }catch(e){msg('sys','','❌ Lỗi DH: '+e.message)}
+  });
+  socket.on('dh_key_accepted',d=>msg('sys','','✅ '+d.message));
+  socket.on('new_peer_key',async d=>{
+    if(d.sid===mySid)return;
+    peerNames[d.sid]=d.username;updatePeers();
+    try{
+      const peerY=BigInt('0x'+d.dh_public_key);
+      const ss=modpow(peerY,myPriv,dhP);
+      peerKeys[d.sid]=await deriveAES(ss);
+      updatePeers();updateShared();
+      ready=true;$('msgIn').disabled=false;$('sendBtn').disabled=false;
+      const kc=Object.keys(peerKeys).length;
+      status('ok','Đã kết nối: '+myUser,'🔒 '+kc+' khóa AES-256-GCM');
+      $('chatSub').textContent='Chat E2E với '+kc+' người';
+      step(5,'done');step(6,'done');step(7,'done');
+      msg('sys','','🔐 Đã trao đổi khóa bí mật với <strong>'+esc(d.username)+'</strong>');
+    }catch(e){console.error(e)}
+  });
+  socket.on('peer_disconnected',d=>{
+    delete peerKeys[d.sid];delete peerNames[d.sid];
+    updatePeers();updateShared();
+    const kc=Object.keys(peerKeys).length;
+    if(!kc){ready=false;$('msgIn').disabled=true;$('sendBtn').disabled=true;status('wait','Đã kết nối: '+myUser,'⏳ Không có ai')}
+    else $('sEnc').textContent='🔒 '+kc+' khóa AES-256-GCM';
+  });
+  socket.on('receive_message',async d=>{
+    const key=peerKeys[d.sender_sid];
+    if(!key){msg('sys','','⚠️ Chưa có khóa chung với '+d.sender);return}
+    // Log ciphertext vào spy panel (server chỉ thấy cái này)
+    const log=$('spyLog');
+    if(log.querySelector('.spy-empty'))log.innerHTML='';
+    const si=document.createElement('div');si.className='spy-item';
+    si.innerHTML='<div class="spy-who">&#128274; '+esc(d.sender)+' → tôi</div>'+
+      '<div class="spy-cipher">'+esc(d.encrypted_message.substring(0,80))+'...</div>'+
+      '<div class="spy-time">'+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' — Server không giải mã được</div>';
+    log.prepend(si);
+    try{const pt=await gcmDec(key,d.encrypted_message);msg('recv',d.sender,pt)}
+    catch(e){msg('sys','','⚠️ Không giải mã được tin từ '+d.sender)}
+  });
+  socket.on('system_message',d=>msg('sys','',d.text));
+  socket.on('client_count',d=>{$('ucnt').textContent=d.count+' người online'});
+}
+
+async function send(){
+  const inp=$('msgIn'),text=inp.value.trim();if(!text||!ready)return;inp.value='';
+  const peers=Object.entries(peerKeys);if(!peers.length)return;
+  try{
+    const recipients={};
+    for(const [sid,key] of peers)recipients[sid]=await gcmEnc(key,text);
+    socket.emit('send_message',{recipients,timestamp:new Date().toISOString()});
+    msg('sent',myUser,text);
+    // Hiển thị ciphertext vào spy panel (server chỉ thấy đây)
+    const log=$('spyLog');
+    if(log.querySelector('.spy-empty'))log.innerHTML='';
+    const enc0=Object.values(recipients)[0];
+    const item=document.createElement('div');
+    item.className='spy-item';
+    item.innerHTML='<div class="spy-who">&#128274; '+esc(myUser)+' → ?</div>'+
+      '<div class="spy-cipher">'+esc(enc0.substring(0,80))+'...</div>'+
+      '<div class="spy-time">'+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' — Server không giải mã được</div>';
+    log.prepend(item);
+  }catch(e){msg('sys','','❌ Lỗi mã hóa: '+e.message)}
+}
+$('msgIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+</script>
+</body>
+</html>
